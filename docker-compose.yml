@@ -1,0 +1,18 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dcs_api
+    restart: unless-stopped
+    ports:
+      - "8001:8000" # FastAPI bisa diakses di localhost:8001
+    volumes:
+      - .:/code
+    networks:
+      - dcs_net
+
+networks:
+  dcs_net:
+    external: true
+    name: document-control-system_dcs_net
