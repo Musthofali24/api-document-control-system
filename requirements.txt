@@ -4,3 +4,6 @@ sqlalchemy
 pymysql 
 python-dotenv
 pydantic[email]
+passlib[bcrypt] 
+cryptography
+PyJWT
