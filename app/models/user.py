@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from datetime import datetime
-
-Base = declarative_base()
+from app.models import Base
 
 
 class User(Base):
@@ -19,6 +18,15 @@ class User(Base):
     two_factor_confirmed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    uploaded_documents = relationship(
+        "Document", foreign_keys="Document.uploaded_by", back_populates="uploader"
+    )
+    revised_documents = relationship(
+        "DocumentRevision",
+        foreign_keys="DocumentRevision.revised_by",
+        back_populates="reviser",
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, name='{self.name}', email='{self.email}')>"

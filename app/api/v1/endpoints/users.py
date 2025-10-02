@@ -6,27 +6,25 @@ from passlib.context import CryptContext
 from app.models.user import User
 from app.schemas.user import UserResponse, UserCreate, UserUpdate, UserLogin
 from app.config.database import get_db
-from app.core.auth import get_current_user  # Tambah import ini aja
+from app.core.auth import get_current_user
 
 router = APIRouter()
 
 
-# Tambah authentication untuk GET all users
 @router.get("/", response_model=List[UserResponse])
 def get_users(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),  # Tambah ini aja
+    current_user: User = Depends(get_current_user),
 ):
     users = db.query(User).all()
     return users
 
 
-# Tambah authentication untuk GET user by ID
 @router.get("/{user_id}", response_model=UserResponse)
 def get_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),  # Tambah ini aja
+    current_user: User = Depends(get_current_user),
 ):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -36,12 +34,11 @@ def get_user(
     return user
 
 
-# Tambah authentication untuk POST create user
 @router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def create_user(
     user_data: UserCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),  # Tambah ini aja
+    current_user: User = Depends(get_current_user),
 ):
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
@@ -61,13 +58,12 @@ def create_user(
     return db_user
 
 
-# Tambah authentication untuk PUT update user
 @router.put("/{user_id}", response_model=UserResponse)
 def update_user(
     user_id: int,
     user_data: UserUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),  # Tambah ini aja
+    current_user: User = Depends(get_current_user),
 ):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -86,12 +82,11 @@ def update_user(
     return user
 
 
-# Tambah authentication untuk DELETE user
 @router.delete("/{user_id}")
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),  # Tambah ini aja
+    current_user: User = Depends(get_current_user),
 ):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
