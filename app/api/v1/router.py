@@ -2,6 +2,8 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     users,
+    role,
+    permission,
     auth,
     category,
     document,
@@ -14,6 +16,12 @@ api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
+
+api_router.include_router(role.router, prefix="/role", tags=["Role"])
+
+api_router.include_router(
+    permission.router, prefix="/permissions", tags=["Permissions"]
+)
 
 api_router.include_router(category.router, prefix="/categories", tags=["Categories"])
 

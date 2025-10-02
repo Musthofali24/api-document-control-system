@@ -28,6 +28,9 @@ class User(Base):
         back_populates="reviser",
     )
 
+    # Many-to-many relationship dengan Role
+    roles = relationship("Role", secondary="user_role", back_populates="users")
+
     def __repr__(self):
         return f"<User(id={self.id}, name='{self.name}', email='{self.email}')>"
 
