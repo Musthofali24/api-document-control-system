@@ -11,6 +11,15 @@ class RevisionStatus(str, Enum):
     REJECTED = "rejected"
 
 
+class HistoryAction(str, Enum):
+    CREATED = "created"
+    UPDATED = "updated"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    ARCHIVED = "archived"
+    RESTORED = "restored"
+
+
 class DocumentBase(BaseModel):
     title: str
     code: str
@@ -67,6 +76,34 @@ class DocumentRevisionResponse(DocumentRevisionBase):
     id: int
     document_id: int
     revised_by: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Document History Schemas
+class DocumentHistoryBase(BaseModel):
+    action: HistoryAction
+    revision_id: Optional[int] = None
+    reason: Optional[str] = None
+
+
+class DocumentHistoryCreate(DocumentHistoryBase):
+    document_id: int
+
+
+class DocumentHistoryUpdate(BaseModel):
+    action: Optional[HistoryAction] = None
+    revision_id: Optional[int] = None
+    reason: Optional[str] = None
+
+
+class DocumentHistoryResponse(DocumentHistoryBase):
+    id: int
+    document_id: int
+    performed_by: int
     created_at: datetime
     updated_at: datetime
 
