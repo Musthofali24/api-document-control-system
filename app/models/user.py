@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from app.models import Base
 
 
@@ -16,8 +16,12 @@ class User(Base):
     two_factor_secret = Column(Text, nullable=True)
     two_factor_recovery_codes = Column(Text, nullable=True)
     two_factor_confirmed_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+    )
 
     uploaded_documents = relationship(
         "Document", foreign_keys="Document.uploaded_by", back_populates="uploader"
@@ -28,8 +32,10 @@ class User(Base):
         back_populates="reviser",
     )
 
-    # Many-to-many relationship dengan Role
     roles = relationship("Role", secondary="user_role", back_populates="users")
+
+    # Relationship dengan Notification
+    notifications = relationship("Notification", back_populates="user")
 
     def __repr__(self):
         return f"<User(id={self.id}, name='{self.name}', email='{self.email}')>"

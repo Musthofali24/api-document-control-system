@@ -9,7 +9,7 @@ from sqlalchemy import (
     Enum,
 )
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 import enum
 from app.models import Base
 
@@ -30,9 +30,12 @@ class Document(Base):
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     uploaded_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+        nullable=False,
     )
 
     category = relationship("Category", back_populates="documents")
@@ -75,9 +78,12 @@ class DocumentRevision(Base):
     acc_content = Column(Integer, nullable=True)
     status = Column(Enum(RevisionStatus), default=RevisionStatus.DRAFT, nullable=False)
     revised_doc = Column(String(255), nullable=True)  # Revised document filename/path
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+        nullable=False,
     )
 
     document = relationship("Document", back_populates="revisions")
@@ -123,12 +129,14 @@ class DocumentHistory(Base):
     action = Column(Enum(HistoryAction), nullable=False)
     performed_by = Column(Integer, ForeignKey("users.id"), nullable=False)
     reason = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime,
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
+        nullable=False,
     )
 
-    # Relationships
     document = relationship("Document", back_populates="history")
     revision = relationship("DocumentRevision")
     performer = relationship("User")

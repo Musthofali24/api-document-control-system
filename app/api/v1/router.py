@@ -4,6 +4,7 @@ from app.api.v1.endpoints import (
     users,
     role,
     permission,
+    notification,
     auth,
     category,
     document,
@@ -21,6 +22,10 @@ api_router.include_router(role.router, prefix="/role", tags=["Role"])
 
 api_router.include_router(
     permission.router, prefix="/permissions", tags=["Permissions"]
+)
+
+api_router.include_router(
+    notification.router, prefix="/notifications", tags=["Notifications"]
 )
 
 api_router.include_router(category.router, prefix="/categories", tags=["Categories"])

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import List, Optional
 import re
@@ -15,7 +15,7 @@ class PermissionBase(BaseModel):
         None, max_length=191, description="Permission description"
     )
 
-    @validator("slug")
+    @field_validator("slug")
     def validate_slug(cls, v):
         if not v:
             raise ValueError("Slug cannot be empty")
@@ -34,7 +34,7 @@ class PermissionUpdate(BaseModel):
     slug: Optional[str] = Field(None, min_length=2, max_length=191)
     description: Optional[str] = Field(None, max_length=191)
 
-    @validator("slug")
+    @field_validator("slug")
     def validate_slug(cls, v):
         if v is not None:
             if not v:
@@ -72,13 +72,12 @@ class PermissionSearchResponse(BaseModel):
     total_pages: int
 
 
-# Role-Permission Assignment Schemas
 class RolePermissionAssign(BaseModel):
     permission_slugs: List[str] = Field(
         ..., min_items=1, description="List of permission slugs to assign"
     )
 
-    @validator("permission_slugs")
+    @field_validator("permission_slugs")
     def validate_permission_slugs(cls, v):
         if not v:
             raise ValueError("At least one permission slug is required")
@@ -96,7 +95,7 @@ class RolePermissionUnassign(BaseModel):
         ..., min_items=1, description="List of permission slugs to unassign"
     )
 
-    @validator("permission_slugs")
+    @field_validator("permission_slugs")
     def validate_permission_slugs(cls, v):
         if not v:
             raise ValueError("At least one permission slug is required")
@@ -125,7 +124,7 @@ class BulkPermissionOperation(BaseModel):
         ..., min_items=1, description="List of permission IDs"
     )
 
-    @validator("permission_ids")
+    @field_validator("permission_ids")
     def validate_permission_ids(cls, v):
         if not v:
             raise ValueError("At least one permission ID is required")

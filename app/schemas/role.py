@@ -1,9 +1,9 @@
 from pydantic import BaseModel, validator
 from typing import Optional, List
 from datetime import datetime
+from app.schemas.user import UserResponse
 
 
-# Role Schemas
 class RoleBase(BaseModel):
     name: str
     slug: str
@@ -11,7 +11,6 @@ class RoleBase(BaseModel):
 
     @validator("slug")
     def slug_must_be_lowercase(cls, v):
-        """Slug harus lowercase dan no spaces"""
         if v:
             return v.lower().replace(" ", "-")
         return v
@@ -42,7 +41,6 @@ class RoleResponse(RoleBase):
         from_attributes = True
 
 
-# User Role Assignment Schemas
 class UserRoleAssign(BaseModel):
     user_id: int
     role_id: int
@@ -70,7 +68,6 @@ class RoleWithUsers(RoleResponse):
         from_attributes = True
 
 
-# Bulk operations
 class BulkRoleAssign(BaseModel):
     user_ids: List[int]
     role_id: int
@@ -81,7 +78,6 @@ class BulkRoleUnassign(BaseModel):
     role_id: int
 
 
-# Role check response
 class UserRoleCheck(BaseModel):
     user_id: int
     role_name: str

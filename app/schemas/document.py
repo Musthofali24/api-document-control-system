@@ -83,7 +83,6 @@ class DocumentRevisionResponse(DocumentRevisionBase):
         from_attributes = True
 
 
-# Document History Schemas
 class DocumentHistoryBase(BaseModel):
     action: HistoryAction
     revision_id: Optional[int] = None
