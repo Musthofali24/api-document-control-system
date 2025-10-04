@@ -8,6 +8,7 @@ from app.core.auth import (
     verify_password,
     create_access_token,
     ACCESS_TOKEN_EXPIRE_MINUTES,
+    get_current_user,
 )
 from app.models.user import User
 
@@ -49,9 +50,23 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/logout", response_model=LogoutResponse)
-async def logout():
+async def logout(current_user: User = Depends(get_current_user)):
     """
-    Logout endpoint - karena JWT stateless, cukup return success message
-    Client harus hapus token dari storage
+    Logout endpoint - validates token and returns success message
+    Client should remove token from storage
     """
     return LogoutResponse(message="Successfully logged out", success=True)
+
+
+@router.get("/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """
+    Get current authenticated user information
+    """
+    return {
+        "id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "created_at": current_user.created_at,
+        "updated_at": current_user.updated_at,
+    }

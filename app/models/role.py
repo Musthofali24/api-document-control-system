@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text, Table, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from app.models import Base
+from app.config.database import Base
 
 user_roles = Table(
     "user_role",

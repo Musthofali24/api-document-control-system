@@ -48,8 +48,11 @@ def create_notification(
     if not target_user:
         raise HTTPException(status_code=404, detail="Target user not found")
 
+    # Generate UUID if not provided
+    notification_id = notification.id or str(uuid.uuid4())
+
     db_notification = Notification(
-        id=notification.id,
+        id=notification_id,
         type=notification.type,
         notifiable_type=notification.notifiable_type,
         notifiable_id=notification.notifiable_id,

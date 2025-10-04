@@ -13,8 +13,6 @@ from app.models.notification import Notification
 
 
 class NotificationHelper:
-    """Helper class untuk notification operations"""
-
     @staticmethod
     def create_notification(
         db: Session,
@@ -36,7 +34,6 @@ class NotificationHelper:
         Returns:
             Created Notification object
         """
-        # Convert data to JSON string if it's a dict
         if isinstance(data, dict):
             data_str = json.dumps(data)
         else:
@@ -78,7 +75,6 @@ class NotificationHelper:
         Returns:
             Created Notification object
         """
-        # Build notification data
         data = {
             "title": title,
             "message": message,

@@ -4,6 +4,7 @@ from typing import List, Optional
 import math
 
 from app.core.auth import get_current_user
+from app.core.permissions import require_role
 from ....config.database import get_db
 from app.models.user import User
 from app.models.role import Role
@@ -27,6 +28,7 @@ router = APIRouter()
 
 
 @router.post("/", response_model=PermissionResponse, summary="Create new permission")
+@require_role("Admin")
 def create_permission(
     permission: PermissionCreate,
     db: Session = Depends(get_db),
@@ -124,6 +126,7 @@ def get_permission(
 @router.put(
     "/{permission_id}", response_model=PermissionResponse, summary="Update permission"
 )
+@require_role("Admin")
 def update_permission(
     permission_id: int,
     permission_update: PermissionUpdate,
@@ -151,7 +154,57 @@ def update_permission(
     return permission
 
 
+@router.delete(
+    "/bulk", response_model=BulkPermissionResponse, summary="Bulk delete permissions"
+)
+@require_role("Admin")
+def bulk_delete_permissions(
+    bulk_operation: BulkPermissionOperation,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    success_count = 0
+    failed_count = 0
+    failed_permissions = []
+
+    for permission_id in bulk_operation.permission_ids:
+        try:
+            permission = (
+                db.query(Permission).filter(Permission.id == permission_id).first()
+            )
+            if permission:
+                db.delete(permission)
+                success_count += 1
+            else:
+                failed_count += 1
+                failed_permissions.append(f"Permission ID {permission_id} not found")
+        except Exception as e:
+            failed_count += 1
+            failed_permissions.append(f"Permission ID {permission_id}: {str(e)}")
+
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        return BulkPermissionResponse(
+            success_count=0,
+            failed_count=len(bulk_operation.permission_ids),
+            total_requested=len(bulk_operation.permission_ids),
+            message="Bulk operation failed",
+            failed_permissions=[f"Database error: {str(e)}"],
+        )
+
+    return BulkPermissionResponse(
+        success_count=success_count,
+        failed_count=failed_count,
+        total_requested=len(bulk_operation.permission_ids),
+        message=f"Bulk delete completed: {success_count} successful, {failed_count} failed",
+        failed_permissions=failed_permissions if failed_permissions else None,
+    )
+
+
 @router.delete("/{permission_id}", summary="Delete permission")
+@require_role("Admin")
 def delete_permission(
     permission_id: int,
     db: Session = Depends(get_db),
@@ -320,51 +373,3 @@ def get_user_permissions(
             user_permissions.add(permission)
 
     return list(user_permissions)
-
-
-@router.delete(
-    "/bulk", response_model=BulkPermissionResponse, summary="Bulk delete permissions"
-)
-def bulk_delete_permissions(
-    bulk_operation: BulkPermissionOperation,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    success_count = 0
-    failed_count = 0
-    failed_permissions = []
-
-    for permission_id in bulk_operation.permission_ids:
-        try:
-            permission = (
-                db.query(Permission).filter(Permission.id == permission_id).first()
-            )
-            if permission:
-                db.delete(permission)
-                success_count += 1
-            else:
-                failed_count += 1
-                failed_permissions.append(f"Permission ID {permission_id} not found")
-        except Exception as e:
-            failed_count += 1
-            failed_permissions.append(f"Permission ID {permission_id}: {str(e)}")
-
-    try:
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        return BulkPermissionResponse(
-            success_count=0,
-            failed_count=len(bulk_operation.permission_ids),
-            total_requested=len(bulk_operation.permission_ids),
-            message="Bulk operation failed",
-            failed_permissions=[f"Database error: {str(e)}"],
-        )
-
-    return BulkPermissionResponse(
-        success_count=success_count,
-        failed_count=failed_count,
-        total_requested=len(bulk_operation.permission_ids),
-        message=f"Bulk delete completed: {success_count} successful, {failed_count} failed",
-        failed_permissions=failed_permissions if failed_permissions else None,
-    )

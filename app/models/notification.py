@@ -1,24 +1,23 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from app.models import Base
+from app.config.database import Base
 
 
 class Notification(Base):
     __tablename__ = "notifications"
 
-    id = Column(String(36), primary_key=True, index=True)  # UUID as string
+    id = Column(String(36), primary_key=True, index=True)
     type = Column(String(255), nullable=False)
     notifiable_type = Column(String(255), nullable=False, default="App\\Models\\User")
     notifiable_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    data = Column(Text, nullable=False)  # JSON data stored as text
+    data = Column(Text, nullable=False)
     read_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
 
-    # Relationship dengan User (notifiable)
     user = relationship(
         "User", foreign_keys=[notifiable_id], back_populates="notifications"
     )
@@ -40,21 +39,17 @@ class Notification(Base):
 
     @property
     def is_read(self) -> bool:
-        """Check apakah notification sudah dibaca"""
         return self.read_at is not None
 
     def mark_as_read(self):
-        """Mark notification sebagai sudah dibaca"""
         if not self.is_read:
             self.read_at = datetime.utcnow()
 
     def mark_as_unread(self):
-        """Mark notification sebagai belum dibaca"""
         self.read_at = None
 
     @classmethod
     def get_by_user(cls, db_session, user_id: int, skip: int = 0, limit: int = 100):
-        """Get notifications untuk user tertentu dengan pagination"""
         return (
             db_session.query(cls)
             .filter(cls.notifiable_id == user_id)
@@ -68,7 +63,6 @@ class Notification(Base):
     def get_unread_by_user(
         cls, db_session, user_id: int, skip: int = 0, limit: int = 100
     ):
-        """Get unread notifications untuk user tertentu"""
         return (
             db_session.query(cls)
             .filter(cls.notifiable_id == user_id, cls.read_at.is_(None))
@@ -82,7 +76,6 @@ class Notification(Base):
     def get_read_by_user(
         cls, db_session, user_id: int, skip: int = 0, limit: int = 100
     ):
-        """Get read notifications untuk user tertentu"""
         return (
             db_session.query(cls)
             .filter(cls.notifiable_id == user_id, cls.read_at.is_not(None))
@@ -94,12 +87,10 @@ class Notification(Base):
 
     @classmethod
     def count_by_user(cls, db_session, user_id: int):
-        """Count total notifications untuk user"""
         return db_session.query(cls).filter(cls.notifiable_id == user_id).count()
 
     @classmethod
     def count_unread_by_user(cls, db_session, user_id: int):
-        """Count unread notifications untuk user"""
         return (
             db_session.query(cls)
             .filter(cls.notifiable_id == user_id, cls.read_at.is_(None))
@@ -115,7 +106,6 @@ class Notification(Base):
         skip: int = 0,
         limit: int = 100,
     ):
-        """Get notifications by type untuk user tertentu"""
         return (
             db_session.query(cls)
             .filter(cls.notifiable_id == user_id, cls.type == notification_type)
@@ -127,7 +117,6 @@ class Notification(Base):
 
     @classmethod
     def mark_all_read_by_user(cls, db_session, user_id: int):
-        """Mark all notifications sebagai read untuk user tertentu"""
         now = datetime.utcnow()
         return (
             db_session.query(cls)
@@ -137,7 +126,6 @@ class Notification(Base):
 
     @classmethod
     def delete_read_by_user(cls, db_session, user_id: int):
-        """Delete all read notifications untuk user tertentu"""
         return (
             db_session.query(cls)
             .filter(cls.notifiable_id == user_id, cls.read_at.is_not(None))

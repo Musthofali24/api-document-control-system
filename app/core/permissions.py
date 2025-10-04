@@ -1,4 +1,5 @@
 from functools import wraps
+import inspect
 from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List, Callable, Any
@@ -54,7 +55,10 @@ def require_permission(permission_slug: str):
                 )
 
             # Call original function
-            return await func(*args, **kwargs)
+            if inspect.iscoroutinefunction(func):
+                return await func(*args, **kwargs)
+            else:
+                return func(*args, **kwargs)
 
         return wrapper
 
@@ -114,7 +118,10 @@ def require_any_permission(permission_slugs: List[str]):
                 )
 
             # Call original function
-            return await func(*args, **kwargs)
+            if inspect.iscoroutinefunction(func):
+                return await func(*args, **kwargs)
+            else:
+                return func(*args, **kwargs)
 
         return wrapper
 
@@ -173,7 +180,10 @@ def require_all_permissions(permission_slugs: List[str]):
                 )
 
             # Call original function
-            return await func(*args, **kwargs)
+            if inspect.iscoroutinefunction(func):
+                return await func(*args, **kwargs)
+            else:
+                return func(*args, **kwargs)
 
         return wrapper
 
@@ -220,7 +230,10 @@ def require_role(role_name: str):
                 )
 
             # Call original function
-            return await func(*args, **kwargs)
+            if inspect.iscoroutinefunction(func):
+                return await func(*args, **kwargs)
+            else:
+                return func(*args, **kwargs)
 
         return wrapper
 
@@ -270,7 +283,10 @@ def require_any_role(role_names: List[str]):
                 )
 
             # Call original function
-            return await func(*args, **kwargs)
+            if inspect.iscoroutinefunction(func):
+                return await func(*args, **kwargs)
+            else:
+                return func(*args, **kwargs)
 
         return wrapper
 

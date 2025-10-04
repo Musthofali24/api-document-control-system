@@ -5,15 +5,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DB_USER = os.getenv("DB_USER", "dcs_user")
-DB_PASS = os.getenv("DB_PASS", "dcs_pass")
-DB_HOST = os.getenv("DB_HOST", "db")
-DB_PORT = os.getenv("DB_PORT", "3306")
-DB_NAME = os.getenv("DB_NAME", "db_dcs")
+# Check if we're in testing mode
+TESTING = os.getenv("TESTING", "false").lower() == "true"
 
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+if TESTING:
+    # Use SQLite for testing
+    DATABASE_URL = "sqlite:///./test.db"
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    # Use MySQL for production
+    DB_USER = os.getenv("DB_USER", "dcs_user")
+    DB_PASS = os.getenv("DB_PASS", "dcs_pass")
+    DB_HOST = os.getenv("DB_HOST", "db")
+    DB_PORT = os.getenv("DB_PORT", "3306")
+    DB_NAME = os.getenv("DB_NAME", "db_dcs")
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+    DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

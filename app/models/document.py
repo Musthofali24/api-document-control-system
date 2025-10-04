@@ -11,7 +11,16 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import enum
-from app.models import Base
+from app.config.database import Base
+
+
+class DocumentStatus(enum.Enum):
+    DRAFT = "draft"
+    PENDING_APPROVAL = "pending_approval"
+    APPROVED = "approved"
+    PUBLISHED = "published"
+    REJECTED = "rejected"
+    ARCHIVED = "archived"
 
 
 class RevisionStatus(enum.Enum):

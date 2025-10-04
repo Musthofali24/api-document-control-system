@@ -19,9 +19,9 @@ class PermissionBase(BaseModel):
     def validate_slug(cls, v):
         if not v:
             raise ValueError("Slug cannot be empty")
-        if not re.match(r"^[a-z0-9_-]+$", v):
+        if not re.match(r"^[a-z0-9_.-]+$", v):
             raise ValueError(
-                "Slug can only contain lowercase letters, numbers, hyphens, and underscores"
+                "Slug can only contain lowercase letters, numbers, hyphens, underscores, and dots"
             )
         return v
 
@@ -39,9 +39,9 @@ class PermissionUpdate(BaseModel):
         if v is not None:
             if not v:
                 raise ValueError("Slug cannot be empty")
-            if not re.match(r"^[a-z0-9_-]+$", v):
+            if not re.match(r"^[a-z0-9_.-]+$", v):
                 raise ValueError(
-                    "Slug can only contain lowercase letters, numbers, hyphens, and underscores"
+                    "Slug can only contain lowercase letters, numbers, hyphens, underscores, and dots"
                 )
         return v
 
