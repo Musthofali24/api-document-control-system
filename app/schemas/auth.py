@@ -20,6 +20,12 @@ class LogoutResponse(BaseModel):
     success: bool
 
 
+class RefreshTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+
+
 class TokenData(BaseModel):
     user_id: Optional[int] = None
     email: Optional[str] = None

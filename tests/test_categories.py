@@ -15,20 +15,20 @@ class TestCategoryEndpoints:
         """Test successful category creation"""
         category_data = {
             "name": "Test Category",
-            "slug": "test-category",
-            "description": "A test category for validation",
         }
 
         response = client.post(
-            "/categories/", json=category_data, headers=authenticated_admin["headers"]
+            "/api/v1/categories/",
+            json=category_data,
+            headers=authenticated_admin["headers"],
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
         assert data["name"] == category_data["name"]
-        assert data["slug"] == category_data["slug"]
-        assert data["description"] == category_data["description"]
-        assert data["is_active"] is True
+        assert "id" in data
+        assert "created_at" in data
+        assert "updated_at" in data
 
     def test_create_category_duplicate_slug(
         self, client, authenticated_admin, sample_categories
@@ -41,7 +41,9 @@ class TestCategoryEndpoints:
         }
 
         response = client.post(
-            "/categories/", json=category_data, headers=authenticated_admin["headers"]
+            "/api/v1/categories/",
+            json=category_data,
+            headers=authenticated_admin["headers"],
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -51,7 +53,9 @@ class TestCategoryEndpoints:
         category_data = {"description": "Missing name and slug"}
 
         response = client.post(
-            "/categories/", json=category_data, headers=authenticated_admin["headers"]
+            "/api/v1/categories/",
+            json=category_data,
+            headers=authenticated_admin["headers"],
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -65,7 +69,9 @@ class TestCategoryEndpoints:
         }
 
         response = client.post(
-            "/categories/", json=category_data, headers=authenticated_user["headers"]
+            "/api/v1/categories/",
+            json=category_data,
+            headers=authenticated_user["headers"],
         )
 
         # Should fail if user doesn't have admin permissions
@@ -79,7 +85,7 @@ class TestCategoryEndpoints:
         category = sample_categories[0]
 
         response = client.get(
-            f"/categories/{category.id}", headers=authenticated_user["headers"]
+            f"/api/v1/categories/{category.id}", headers=authenticated_user["headers"]
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -93,7 +99,8 @@ class TestCategoryEndpoints:
         category = sample_categories[0]
 
         response = client.get(
-            f"/categories/slug/{category.slug}", headers=authenticated_user["headers"]
+            f"/api/v1/categories/slug/{category.slug}",
+            headers=authenticated_user["headers"],
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -104,7 +111,7 @@ class TestCategoryEndpoints:
     def test_get_category_not_found(self, client, authenticated_user):
         """Test getting non-existent category"""
         response = client.get(
-            "/categories/999999", headers=authenticated_user["headers"]
+            "/api/v1/categories/999999", headers=authenticated_user["headers"]
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -112,7 +119,7 @@ class TestCategoryEndpoints:
     def test_get_categories_list(self, client, authenticated_user, sample_categories):
         """Test getting paginated list of categories"""
         response = client.get(
-            "/categories/?page=1&size=10", headers=authenticated_user["headers"]
+            "/api/v1/categories/?page=1&size=10", headers=authenticated_user["headers"]
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -128,7 +135,8 @@ class TestCategoryEndpoints:
     ):
         """Test getting only active categories"""
         response = client.get(
-            "/categories/?active_only=true", headers=authenticated_user["headers"]
+            "/api/v1/categories/?active_only=true",
+            headers=authenticated_user["headers"],
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -143,7 +151,8 @@ class TestCategoryEndpoints:
         search_term = sample_categories[0].name[:3]
 
         response = client.get(
-            f"/categories/?search={search_term}", headers=authenticated_user["headers"]
+            f"/api/v1/categories/?search={search_term}",
+            headers=authenticated_user["headers"],
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -161,7 +170,7 @@ class TestCategoryEndpoints:
         }
 
         response = client.put(
-            f"/categories/{category.id}",
+            f"/api/v1/categories/{category.id}",
             json=update_data,
             headers=authenticated_admin["headers"],
         )
@@ -178,7 +187,7 @@ class TestCategoryEndpoints:
         update_data = {"slug": "new-updated-slug"}
 
         response = client.put(
-            f"/categories/{category.id}",
+            f"/api/v1/categories/{category.id}",
             json=update_data,
             headers=authenticated_admin["headers"],
         )
@@ -195,7 +204,7 @@ class TestCategoryEndpoints:
         update_data = {"slug": category2.slug}  # Try to use another category's slug
 
         response = client.put(
-            f"/categories/{category1.id}",
+            f"/api/v1/categories/{category1.id}",
             json=update_data,
             headers=authenticated_admin["headers"],
         )
@@ -210,7 +219,7 @@ class TestCategoryEndpoints:
         update_data = {"name": "Unauthorized Update"}
 
         response = client.put(
-            f"/categories/{category.id}",
+            f"/api/v1/categories/{category.id}",
             json=update_data,
             headers=authenticated_user["headers"],
         )
@@ -225,7 +234,7 @@ class TestCategoryEndpoints:
         update_data = {"name": "Updated Name"}
 
         response = client.put(
-            "/categories/999999",
+            "/api/v1/categories/999999",
             json=update_data,
             headers=authenticated_admin["headers"],
         )
@@ -241,14 +250,14 @@ class TestCategoryEndpoints:
         category_id = category.id
 
         response = client.delete(
-            f"/categories/{category_id}", headers=authenticated_admin["headers"]
+            f"/api/v1/categories/{category_id}", headers=authenticated_admin["headers"]
         )
 
         assert response.status_code == status.HTTP_200_OK
 
         # Verify category is deleted
         get_response = client.get(
-            f"/categories/{category_id}", headers=authenticated_admin["headers"]
+            f"/api/v1/categories/{category_id}", headers=authenticated_admin["headers"]
         )
         assert get_response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -265,7 +274,7 @@ class TestCategoryEndpoints:
 
         if category_with_docs:
             response = client.delete(
-                f"/categories/{category_with_docs.id}",
+                f"/api/v1/categories/{category_with_docs.id}",
                 headers=authenticated_admin["headers"],
             )
 
@@ -282,7 +291,7 @@ class TestCategoryEndpoints:
         category = sample_categories[0]
 
         response = client.delete(
-            f"/categories/{category.id}", headers=authenticated_user["headers"]
+            f"/api/v1/categories/{category.id}", headers=authenticated_user["headers"]
         )
 
         assert response.status_code in [
@@ -293,7 +302,7 @@ class TestCategoryEndpoints:
     def test_delete_category_not_found(self, client, authenticated_admin):
         """Test deleting non-existent category"""
         response = client.delete(
-            "/categories/999999", headers=authenticated_admin["headers"]
+            "/api/v1/categories/999999", headers=authenticated_admin["headers"]
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -306,7 +315,7 @@ class TestCategoryEndpoints:
         original_status = category.is_active
 
         response = client.put(
-            f"/categories/{category.id}/toggle-status",
+            f"/api/v1/categories/{category.id}/toggle-status",
             headers=authenticated_admin["headers"],
         )
 
@@ -319,7 +328,7 @@ class TestCategoryEndpoints:
     ):
         """Test getting category statistics"""
         response = client.get(
-            "/categories/statistics", headers=authenticated_admin["headers"]
+            "/api/v1/categories/statistics", headers=authenticated_admin["headers"]
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -334,7 +343,8 @@ class TestCategoryEndpoints:
     ):
         """Test getting document count for each category"""
         response = client.get(
-            "/categories/with-document-counts", headers=authenticated_user["headers"]
+            "/api/v1/categories/with-document-counts",
+            headers=authenticated_user["headers"],
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -346,7 +356,9 @@ class TestCategoryEndpoints:
 
     def test_category_tree_structure(self, client, authenticated_user):
         """Test getting category tree structure (if hierarchical)"""
-        response = client.get("/categories/tree", headers=authenticated_user["headers"])
+        response = client.get(
+            "/api/v1/categories/tree", headers=authenticated_user["headers"]
+        )
 
         assert response.status_code == status.HTTP_200_OK
         # Structure depends on whether categories support hierarchy
@@ -361,7 +373,7 @@ class TestCategoryEndpoints:
         bulk_data = {"category_ids": category_ids, "is_active": False}
 
         response = client.put(
-            "/categories/bulk/status",
+            "/api/v1/categories/bulk/status",
             json=bulk_data,
             headers=authenticated_admin["headers"],
         )
@@ -381,7 +393,9 @@ class TestCategoryEndpoints:
                 "description": "Temporary category",
             }
             response = client.post(
-                "/categories/", json=cat_data, headers=authenticated_admin["headers"]
+                "/api/v1/categories/",
+                json=cat_data,
+                headers=authenticated_admin["headers"],
             )
             categories_to_delete.append(response.json()["id"])
 
@@ -389,7 +403,7 @@ class TestCategoryEndpoints:
         bulk_data = {"category_ids": categories_to_delete}
 
         response = client.delete(
-            "/categories/bulk/delete",
+            "/api/v1/categories/bulk/delete",
             json=bulk_data,
             headers=authenticated_admin["headers"],
         )
@@ -401,7 +415,8 @@ class TestCategoryEndpoints:
     def test_category_export(self, client, authenticated_admin, sample_categories):
         """Test exporting categories to CSV/Excel"""
         response = client.get(
-            "/categories/export?format=csv", headers=authenticated_admin["headers"]
+            "/api/v1/categories/export?format=csv",
+            headers=authenticated_admin["headers"],
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -419,7 +434,9 @@ Import Category 2,import-cat-2,Second imported category"""
         files = {"file": ("categories.csv", io.StringIO(csv_content), "text/csv")}
 
         response = client.post(
-            "/categories/import", files=files, headers=authenticated_admin["headers"]
+            "/api/v1/categories/import",
+            files=files,
+            headers=authenticated_admin["headers"],
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -436,7 +453,9 @@ Import Category 2,import-cat-2,Second imported category"""
         }
 
         response = client.post(
-            "/categories/", json=invalid_data, headers=authenticated_admin["headers"]
+            "/api/v1/categories/",
+            json=invalid_data,
+            headers=authenticated_admin["headers"],
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -449,7 +468,7 @@ Import Category 2,import-cat-2,Second imported category"""
         }
 
         response = client.post(
-            "/categories/",
+            "/api/v1/categories/",
             json=invalid_slug_data,
             headers=authenticated_admin["headers"],
         )
@@ -462,7 +481,7 @@ Import Category 2,import-cat-2,Second imported category"""
         """Test advanced category search functionality"""
         # Search by description
         response = client.get(
-            "/categories/search?query=description&search_in=description",
+            "/api/v1/categories/search?query=description&search_in=description",
             headers=authenticated_user["headers"],
         )
 
@@ -470,7 +489,7 @@ Import Category 2,import-cat-2,Second imported category"""
 
         # Search with sorting
         response = client.get(
-            "/categories/search?sort_by=name&sort_order=desc",
+            "/api/v1/categories/search?sort_by=name&sort_order=desc",
             headers=authenticated_user["headers"],
         )
 
@@ -481,7 +500,7 @@ Import Category 2,import-cat-2,Second imported category"""
     ):
         """Test getting recent category activity"""
         response = client.get(
-            "/categories/recent-activity", headers=authenticated_admin["headers"]
+            "/api/v1/categories/recent-activity", headers=authenticated_admin["headers"]
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -490,7 +509,7 @@ Import Category 2,import-cat-2,Second imported category"""
 
     def test_category_unauthorized_access(self, client, sample_categories):
         """Test accessing categories without authentication"""
-        response = client.get(f"/categories/{sample_categories[0].id}")
+        response = client.get(f"/api/v1/categories/{sample_categories[0].id}")
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -503,7 +522,9 @@ Import Category 2,import-cat-2,Second imported category"""
         }
 
         response = client.post(
-            "/categories/", json=category_data, headers=authenticated_admin["headers"]
+            "/api/v1/categories/",
+            json=category_data,
+            headers=authenticated_admin["headers"],
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -517,7 +538,7 @@ Import Category 2,import-cat-2,Second imported category"""
         category = sample_categories[0]
 
         response = client.get(
-            f"/categories/{category.id}/documents",
+            f"/api/v1/categories/{category.id}/documents",
             headers=authenticated_user["headers"],
         )
 
@@ -547,7 +568,7 @@ Import Category 2,import-cat-2,Second imported category"""
             }
 
             response = client.put(
-                f"/categories/{source_category.id}/move-documents",
+                f"/api/v1/categories/{source_category.id}/move-documents",
                 json=move_data,
                 headers=authenticated_admin["headers"],
             )

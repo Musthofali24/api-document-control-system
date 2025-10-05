@@ -26,7 +26,7 @@ class TestRBACIntegration:
         role_response = client.post(
             "/api/v1/role/", json=role_data, headers=authenticated_admin["headers"]
         )
-        assert role_response.status_code == status.HTTP_200_OK
+        assert role_response.status_code == status.HTTP_201_CREATED
         role_id = role_response.json()["id"]
 
         # Step 2: Create permissions
@@ -41,7 +41,7 @@ class TestRBACIntegration:
             perm_response = client.post(
                 "/api/v1/permissions/", json=perm_data, headers=authenticated_admin["headers"]
             )
-            assert perm_response.status_code == status.HTTP_200_OK
+            assert perm_response.status_code == status.HTTP_201_CREATED
             permission_ids.append(perm_response.json()["id"])
 
         # Step 3: Assign permissions to role
@@ -323,7 +323,7 @@ class TestRBACIntegration:
         role_response = client.post(
             "/api/v1/role/", json=role_data, headers=authenticated_admin["headers"]
         )
-        assert role_response.status_code == status.HTTP_200_OK
+        assert role_response.status_code == status.HTTP_201_CREATED
         role_id = role_response.json()["id"]
 
         # Assign permissions to role
@@ -529,7 +529,7 @@ class TestRBACIntegration:
             perm_response = client.post(
                 "/api/v1/permissions/", json=perm_data, headers=authenticated_admin["headers"]
             )
-            assert perm_response.status_code == status.HTTP_200_OK
+            assert perm_response.status_code == status.HTTP_201_CREATED
 
         assign_data = {"permission_slugs": doc_permissions}
         response = client.post(
@@ -548,7 +548,7 @@ class TestRBACIntegration:
             perm_response = client.post(
                 "/api/v1/permissions/", json=perm_data, headers=authenticated_admin["headers"]
             )
-            assert perm_response.status_code == status.HTTP_200_OK
+            assert perm_response.status_code == status.HTTP_201_CREATED
 
         assign_data = {"permission_slugs": user_permissions}
         response = client.post(

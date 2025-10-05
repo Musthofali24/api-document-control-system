@@ -3,7 +3,12 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 
 from app.config.database import get_db
-from app.schemas.auth import LoginRequest, LoginResponse, LogoutResponse
+from app.schemas.auth import (
+    LoginRequest,
+    LoginResponse,
+    LogoutResponse,
+    RefreshTokenResponse,
+)
 from app.core.auth import (
     verify_password,
     create_access_token,
@@ -20,8 +25,8 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     """
     Login endpoint - autentikasi user dengan email dan password
     """
-    # Cari user berdasarkan email
-    user = db.query(User).filter(User.email == login_data.email).first()
+    # Cari user berdasarkan email (case insensitive)
+    user = db.query(User).filter(User.email.ilike(login_data.email)).first()
 
     if not user:
         raise HTTPException(
@@ -51,11 +56,26 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 
 @router.post("/logout", response_model=LogoutResponse)
 async def logout(current_user: User = Depends(get_current_user)):
-    """
-    Logout endpoint - validates token and returns success message
-    Client should remove token from storage
-    """
     return LogoutResponse(message="Successfully logged out", success=True)
+
+
+@router.post("/refresh", response_model=RefreshTokenResponse)
+async def refresh_token(current_user: User = Depends(get_current_user)):
+    """
+    Refresh access token using current valid token
+    """
+    # Buat access token baru
+    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token = create_access_token(
+        data={"sub": str(current_user.id), "email": current_user.email},
+        expires_delta=access_token_expires,
+    )
+
+    return RefreshTokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        expires_in=int(ACCESS_TOKEN_EXPIRE_MINUTES) * 60,  # dalam detik
+    )
 
 
 @router.get("/me")

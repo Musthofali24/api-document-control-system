@@ -153,7 +153,7 @@ def admin_permission(db_session):
 @pytest.fixture
 def test_category(db_session):
     """Create a test category"""
-    category = Category(name="Test Category", description="A test category")
+    category = Category(name="Test Category")
     db_session.add(category)
     db_session.commit()
     db_session.refresh(category)
@@ -266,6 +266,30 @@ def sample_permissions(db_session):
     return permissions
 
 
+@pytest.fixture
+def sample_categories(db_session):
+    """Create multiple sample categories for testing"""
+    categories = []
+    category_data = [
+        {"name": "Technical Documentation"},
+        {"name": "Policy Documents"},
+        {"name": "Training Materials"},
+        {"name": "Legal Documents"},
+        {"name": "Financial Reports"},
+    ]
+
+    for data in category_data:
+        category = Category(**data)
+        db_session.add(category)
+        categories.append(category)
+
+    db_session.commit()
+    for category in categories:
+        db_session.refresh(category)
+
+    return categories
+
+
 # Helper functions for tests
 def create_test_document(db_session, user_id, category_id, title="Test Document"):
     """Helper to create test document"""
@@ -324,3 +348,87 @@ TEST_NOTIFICATION_DATA = {
     "message": "This is a test notification",
     "action_url": "/test/action",
 }
+
+
+@pytest.fixture
+def sample_document(db_session, admin_user, test_category):
+    """Create a sample document for testing"""
+    document = Document(
+        title="Sample Document",
+        code="DOC001",
+        category_id=test_category.id,
+        uploaded_by=admin_user.id,
+        is_active=True,
+    )
+    db_session.add(document)
+    db_session.commit()
+    db_session.refresh(document)
+    return document
+
+
+@pytest.fixture
+def sample_documents(db_session, admin_user, test_category):
+    """Create multiple sample documents for testing"""
+    documents = []
+    for i in range(3):
+        document = Document(
+            title=f"Sample Document {i+1}",
+            code=f"DOC00{i+1}",
+            category_id=test_category.id,
+            uploaded_by=admin_user.id,
+            is_active=True,
+        )
+        db_session.add(document)
+        documents.append(document)
+
+    db_session.commit()
+    for doc in documents:
+        db_session.refresh(doc)
+    return documents
+
+
+@pytest.fixture
+def other_user_auth(db_session, client):
+    """Create another user for testing authorization"""
+    # Create another user
+    hashed_password = get_password_hash("testpassword")
+    other_user = User(
+        name="Other User",
+        email="other@example.com",
+        password=hashed_password,
+        email_verified_at=None,
+    )
+    db_session.add(other_user)
+    db_session.commit()
+    db_session.refresh(other_user)
+
+    # Create token for other user
+    token = create_access_token(data={"sub": other_user.email})
+
+    return {
+        "user": other_user,
+        "token": token,
+        "headers": {"Authorization": f"Bearer {token}"},
+    }
+
+
+@pytest.fixture
+def sample_document_with_file(db_session, admin_user, test_category, tmp_path):
+    """Create a sample document with an associated file for testing"""
+    # Create a temporary test file
+    test_file = tmp_path / "test_document.pdf"
+    test_file.write_text("This is a test document content")
+
+    document = Document(
+        title="Document with File",
+        code="DOC-FILE-001",
+        category_id=test_category.id,
+        uploaded_by=admin_user.id,
+        is_active=True,
+        # Note: Document model doesn't have file_path field
+        # File handling should be done through DocumentRevision
+    )
+    db_session.add(document)
+    db_session.commit()
+    db_session.refresh(document)
+    return document
